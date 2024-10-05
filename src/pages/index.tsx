@@ -1,23 +1,21 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 
 export default function Home() {
   const [url, setUrl] = useState('');
-  const [originalScreenshot, setOriginalScreenshot] = useState('');
-  const [modifiedScreenshot, setModifiedScreenshot] = useState('');
-  const [seoRecommendations, setSeoRecommendations] = useState('');
-  const [modifiedContent, setModifiedContent] = useState(null);
+  const [screenshot, setScreenshot] = useState('');
+  const [seoAnalysis, setSeoAnalysis] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const screenshotRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const response = await axios.post('/api/analyze', { url });
-      setOriginalScreenshot(response.data.originalScreenshot);
-      setModifiedScreenshot(response.data.modifiedScreenshot);
-      setSeoRecommendations(response.data.seoRecommendations);
-      setModifiedContent(response.data.modifiedContent);
+      setScreenshot(response.data.screenshot);
+      setSeoAnalysis(response.data.seoAnalysis);
     } catch (error) {
       console.error('Error analyzing website:', error);
     }
@@ -44,30 +42,26 @@ export default function Home() {
           {loading ? 'Analyzing...' : 'Analyze Website'}
         </button>
       </form>
-      {originalScreenshot && (
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-2">Original Screenshot:</h2>
-          <img src={`data:image/png;base64,${originalScreenshot}`} alt="Original Website Screenshot" className="w-full" />
-        </div>
-      )}
-      {seoRecommendations && (
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-2">SEO Recommendations:</h2>
-          <pre className="whitespace-pre-wrap bg-gray-100 p-4 text-black rounded">{seoRecommendations}</pre>
-        </div>
-      )}
-      {modifiedScreenshot && (
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-2">Modified Screenshot:</h2>
-          <img src={`data:image/png;base64,${modifiedScreenshot}`} alt="Modified Website Screenshot" className="w-full" />
-        </div>
-      )}
-      {modifiedContent && (
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-2">Modified Content:</h2>
-          <pre className="whitespace-pre-wrap bg-gray-100 text-black p-4 rounded">{JSON.stringify(modifiedContent, null, 2)}</pre>
-        </div>
-      )}
+
+      <div className="flex flex-row mb-4 space-y-4 md:space-y-0 md:space-x-4">
+        {screenshot && (
+          <div className="w-full md:w-1/2">
+            <h2 className="text-xl font-semibold mb-2">Website Preview:</h2>
+            <div ref={screenshotRef} className="h-[600px] overflow-y-auto border rounded">
+              <img src={`data:image/png;base64,${screenshot}`} alt="Website Screenshot" className="w-full" />
+            </div>
+          </div>
+        )}
+        
+        {seoAnalysis && (
+          <div className="w-full md:w-1/2">
+            <h2 className="text-xl font-semibold mb-2">SEO Improvement Steps:</h2>
+            <pre className="whitespace-pre-wrap bg-gray-100 p-4 text-black rounded h-[600px] overflow-y-auto">
+              {seoAnalysis}
+            </pre>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
