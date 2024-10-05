@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -7,9 +8,9 @@ export default function Home() {
   const [seoAnalysis, setSeoAnalysis] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const screenshotRef = useRef<HTMLDivElement>(null);
+  const screenshotRef = useRef(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -43,7 +44,7 @@ export default function Home() {
         </button>
       </form>
 
-      <div className="flex flex-row mb-4 space-y-4 md:space-y-0 md:space-x-4">
+      <div className="flex flex-col md:flex-row mb-4 space-y-4 md:space-y-0 md:space-x-4">
         {screenshot && (
           <div className="w-full md:w-1/2">
             <h2 className="text-xl font-semibold mb-2">Website Preview:</h2>
@@ -56,9 +57,9 @@ export default function Home() {
         {seoAnalysis && (
           <div className="w-full md:w-1/2">
             <h2 className="text-xl font-semibold mb-2">SEO Improvement Steps:</h2>
-            <pre className="whitespace-pre-wrap bg-gray-100 p-4 text-black rounded h-[600px] overflow-y-auto">
-              {seoAnalysis}
-            </pre>
+            <div className="bg-gray-100 p-4 text-black rounded h-[600px] overflow-y-auto">
+              <ReactMarkdown>{seoAnalysis}</ReactMarkdown>
+            </div>
           </div>
         )}
       </div>
