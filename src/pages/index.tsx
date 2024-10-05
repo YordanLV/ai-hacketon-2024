@@ -1,32 +1,62 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const LighthouseScore = ({ score, category, title }) => {
+const LighthouseScore = ({ score, category, title, description, audits }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const getColor = (score) => {
-    if (score >= 90) return 'bg-green-500';
-    if (score >= 50) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (score >= 90) return '#DA8359';
+    if (score >= 50) return '#ECDFCC';
+    return '#DA8359';
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <div className={`w-24 h-24 rounded-full ${getColor(score)} flex items-center justify-center mb-2`}>
-        <span className="text-white text-2xl font-bold">{score}</span>
+    <div className="mb-4 p-4 border rounded-lg bg-[#FCFAEE]">
+      <div className="flex items-center mb-2">
+        <div className={`w-16 h-16 rounded-full bg-[${getColor(score)}] flex items-center justify-center mr-4`}>
+          <span className="text-[#FCFAEE] text-xl font-bold">{score}</span>
+        </div>
+        <div>
+          <h3 className="font-semibold text-lg text-[#A5B68D]">{title}</h3>
+          <p className="text-sm text-[#DA8359]">{category}</p>
+        </div>
       </div>
-      <div className="text-center">
-        <h3 className="font-semibold">{title}</h3>
-        <p className="text-sm text-gray-600">{category}</p>
-      </div>
+      <p className="text-sm mb-2 text-[#A5B68D]">{description}</p>
+      <button
+        className="text-[#DA8359] hover:text-[#ECDFCC]"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        {isExpanded ? 'Hide Details' : 'Show Details'}
+      </button>
+      {isExpanded && (
+        <div className="mt-2">
+          <h4 className="font-semibold mb-2 text-[#A5B68D]">Audits:</h4>
+          <ul className="list-disc pl-5">
+            {audits.map((audit) => (
+              <li key={audit.id} className="mb-1 text-[#A5B68D]">
+                <span className={audit.score === 1 ? 'text-[#A5B68D]' : 'text-[#DA8359]'}>
+                  {audit.score === 1 ? '✓' : '✗'}
+                </span>
+                {' '}
+                {audit.title}
+                {audit.displayValue && ` - ${audit.displayValue}`}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
 
-export default function Home() {
+const SEOAnalyzer = () => {
   const [url, setUrl] = useState('');
   const [screenshot, setScreenshot] = useState('');
   const [seoAnalysis, setSeoAnalysis] = useState('');
   const [lighthouseResults, setLighthouseResults] = useState([]);
+  const [lighthouseAudits, setLighthouseAudits] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const screenshotRef = useRef(null);
@@ -43,6 +73,7 @@ export default function Home() {
       setScreenshot(analysisResponse.data.screenshot);
       setSeoAnalysis(analysisResponse.data.seoAnalysis);
       setLighthouseResults(lighthouseResponse.data.lighthouseResults);
+      setLighthouseAudits(lighthouseResponse.data.lighthouseAudits);
     } catch (error) {
       console.error('Error analyzing website:', error);
     }
@@ -50,21 +81,24 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Advanced SEO Analysis Tool</h1>
-      <form onSubmit={handleSubmit} className="mb-4">
+    <div className="container mx-auto p-4 bg-[#FCFAEE]">
+      <h1 className="text-4xl font-bold mb-4 text-[#A5B68D] text-center">BÓBR SEO</h1>
+      <div className="flex justify-center mb-4">
+        <img src="/bobr.png" alt='Bobr' className="w-64 h-64" />
+      </div>
+      <form onSubmit={handleSubmit} className="mb-4 max-w-xl mx-auto">
         <input
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Enter website URL"
           required
-          className="w-full p-2 text-black border rounded"
+          className="w-full p-2 text-[#A5B68D] border rounded bg-[#ECDFCC]"
         />
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="mt-2 w-full px-4 py-2 bg-[#DA8359] text-[#FCFAEE] rounded hover:bg-[#A5B68D]"
         >
           {loading ? 'Analyzing...' : 'Analyze Website'}
         </button>
@@ -72,25 +106,36 @@ export default function Home() {
 
       {lighthouseResults.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Lighthouse Results:</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {lighthouseResults.map((result) => (
-              <LighthouseScore
-                key={result.category}
-                score={result.score}
-                category={result.category}
-                title={result.title}
-              />
-            ))}
-          </div>
+          <h2 className="text-xl font-semibold mb-4 text-[#A5B68D] text-center">Lighthouse Results</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={lighthouseResults}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="category" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="score" fill="#A5B68D" />
+            </BarChart>
+          </ResponsiveContainer>
+          {lighthouseResults.map((result) => (
+            <LighthouseScore
+              key={result.category}
+              score={result.score}
+              category={result.category}
+              title={result.title}
+              description={result.description}
+              audits={lighthouseAudits.filter(audit => 
+                result.auditRefs.some(ref => ref.id === audit.id)
+              )}
+            />
+          ))}
         </div>
       )}
 
       <div className="flex flex-col md:flex-row mb-4 space-y-4 md:space-y-0 md:space-x-4">
         {screenshot && (
           <div className="w-full md:w-1/2">
-            <h2 className="text-xl font-semibold mb-2">Website Preview:</h2>
-            <div ref={screenshotRef} className="h-[600px] overflow-y-auto border rounded">
+            <h2 className="text-xl font-semibold mb-2 text-[#A5B68D] text-center">Website Preview</h2>
+            <div ref={screenshotRef} className="h-[600px] overflow-y-auto border rounded bg-[#ECDFCC]">
               <img src={`data:image/png;base64,${screenshot}`} alt="Website Screenshot" className="w-full" />
             </div>
           </div>
@@ -98,8 +143,8 @@ export default function Home() {
         
         {seoAnalysis && (
           <div className="w-full md:w-1/2">
-            <h2 className="text-xl font-semibold mb-2">SEO Improvement Steps:</h2>
-            <div className="bg-gray-100 p-4 text-black rounded h-[600px] overflow-y-auto">
+            <h2 className="text-xl font-semibold mb-2 text-[#A5B68D] text-center">SEO Improvement Steps</h2>
+            <div className="bg-[#ECDFCC] p-4 text-[#A5B68D] rounded h-[600px] overflow-y-auto">
               <ReactMarkdown>{seoAnalysis}</ReactMarkdown>
             </div>
           </div>
@@ -107,4 +152,6 @@ export default function Home() {
       </div>
     </div>
   );
-}
+};
+
+export default SEOAnalyzer;
