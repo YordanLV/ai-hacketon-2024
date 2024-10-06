@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import puppeteer from 'puppeteer';
-import OpenAI from 'openai';
+import { NextApiRequest, NextApiResponse } from "next";
+import puppeteer from "puppeteer";
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,16 +8,19 @@ const openai = new OpenAI({
 
 export const config = {
   api: {
-    responseLimit: '50mb',
+    responseLimit: "50mb",
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "POST") {
     const { url } = req.body;
 
-    if (typeof url !== 'string') {
-      res.status(400).json({ error: 'Invalid URL provided' });
+    if (typeof url !== "string") {
+      res.status(400).json({ error: "Invalid URL provided" });
       return;
     }
 
@@ -29,11 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         seoAnalysis,
       });
     } catch (error) {
-      console.error('Error analyzing website:', error);
-      res.status(500).json({ error: 'Failed to analyze website' });
+      console.error("Error analyzing website:", error);
+      res.status(500).json({ error: "Failed to analyze website" });
     }
   } else {
-    res.setHeader('Allow', ['POST']);
+    res.setHeader("Allow", ["POST"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
@@ -53,22 +56,27 @@ interface SEORelevantContent {
   images: { alt: string }[];
 }
 
-async function analyzeWebsite(url: string): Promise<{ screenshot: string; seoAnalysis: string }> {
+async function analyzeWebsite(
+  url: string
+): Promise<{ screenshot: string; seoAnalysis: string }> {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
-  await page.goto(url, { waitUntil: 'networkidle0' });
+  await page.goto(url, { waitUntil: "networkidle0" });
 
-  const screenshot = await page.screenshot({ encoding: 'base64', fullPage: true }) as string;
+  const screenshot = (await page.screenshot({
+    encoding: "base64",
+    fullPage: true,
+  })) as string;
 
   const seoRelevantContent: SEORelevantContent = await page.evaluate(() => {
     const getInnerText = (selector: string): string[] => {
       const elements = document.querySelectorAll(selector);
-      return Array.from(elements).map(el => el.textContent || '');
+      return Array.from(elements).map((el) => el.textContent || "");
     };
 
     const getMetaContent = (name: string): string => {
       const element = document.querySelector(`meta[name="${name}"]`);
-      return element ? element.getAttribute('content') || '' : '';
+      return element ? element.getAttribute("content") || "" : "";
     };
 
     const getHeadings = (level: number): string[] => {
@@ -76,26 +84,33 @@ async function analyzeWebsite(url: string): Promise<{ screenshot: string; seoAna
     };
 
     const getLists = (): { type: string; items: string[] }[] => {
-      const lists = Array.from(document.querySelectorAll('ul, ol'));
-      return lists.map(list => ({
+      const lists = Array.from(document.querySelectorAll("ul, ol"));
+      return lists.map((list) => ({
         type: list.tagName.toLowerCase(),
-        items: Array.from(list.querySelectorAll('li')).map(li => li.textContent || '')
+        items: Array.from(list.querySelectorAll("li")).map(
+          (li) => li.textContent || ""
+        ),
       }));
     };
 
     return {
       title: document.title,
-      metaDescription: getMetaContent('description'),
+      metaDescription: getMetaContent("description"),
       h1: getHeadings(1),
       h2: getHeadings(2),
       h3: getHeadings(3),
       h4: getHeadings(4),
       h5: getHeadings(5),
       h6: getHeadings(6),
-      paragraphs: getInnerText('p'),
+      paragraphs: getInnerText("p"),
       lists: getLists(),
-      links: Array.from(document.querySelectorAll('a')).map(a => ({href: a.href, text: a.textContent || ''})),
-      images: Array.from(document.querySelectorAll('img')).map(img => ({alt: img.alt})),
+      links: Array.from(document.querySelectorAll("a")).map((a) => ({
+        href: a.href,
+        text: a.textContent || "",
+      })),
+      images: Array.from(document.querySelectorAll("img")).map((img) => ({
+        alt: img.alt,
+      })),
     };
   });
 
@@ -103,19 +118,19 @@ async function analyzeWebsite(url: string): Promise<{ screenshot: string; seoAna
 
   const summarize = (content: string, maxLength: number): string => {
     if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength - 3) + '...';
+    return content.substring(0, maxLength - 3) + "...";
   };
 
   const summarizedContent: SEORelevantContent = {
     ...seoRelevantContent,
-    paragraphs: seoRelevantContent.paragraphs.map(p => summarize(p, 200)),
-    lists: seoRelevantContent.lists.map(list => ({
+    paragraphs: seoRelevantContent.paragraphs.map((p) => summarize(p, 200)),
+    lists: seoRelevantContent.lists.map((list) => ({
       ...list,
-      items: list.items.map(item => summarize(item, 100))
+      items: list.items.map((item) => summarize(item, 100)),
     })),
-    links: seoRelevantContent.links.map(link => ({
+    links: seoRelevantContent.links.map((link) => ({
       ...link,
-      text: summarize(link.text, 50)
+      text: summarize(link.text, 50),
     })),
   };
 
@@ -127,10 +142,17 @@ Title: ${summarizedContent.title}
 Meta Description: ${summarizedContent.metaDescription}
 
 Headings:
-${['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map(h => `${h.toUpperCase()}: ${summarizedContent[h as keyof SEORelevantContent].join(' | ')}`).join('\n')}
+${["h1", "h2", "h3", "h4", "h5", "h6"]
+  .map(
+    (h) =>
+      `${h.toUpperCase()}: ${(
+        summarizedContent[h as keyof SEORelevantContent] as string[]
+      ).join(" | ")}`
+  )
+  .join("\n")}
 
 Paragraphs:
-${summarizedContent.paragraphs.join('\n\n')}
+${summarizedContent.paragraphs.join("\n\n")}
 
 Lists:
 ${JSON.stringify(summarizedContent.lists, null, 2)}
@@ -154,13 +176,13 @@ Provide a comprehensive SEO analysis and improvement plan based on this content.
 For each area, provide detailed, actionable recommendations and explain their potential impact on SEO. Consider both on-page and technical SEO factors in your analysis.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [{ role: 'user', content: prompt }],
+    model: "gpt-4",
+    messages: [{ role: "user", content: prompt }],
     temperature: 0.7,
     max_tokens: 2000,
   });
 
-  const seoAnalysis = response.choices[0].message?.content || '';
+  const seoAnalysis = response.choices[0].message?.content || "";
 
   return { screenshot, seoAnalysis };
 }
