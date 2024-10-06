@@ -6,7 +6,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { url } = req.body;
 
     try {
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
       const page = await browser.newPage();
       await page.goto(url);
       const screenshot = await page.screenshot({ encoding: 'base64' });
