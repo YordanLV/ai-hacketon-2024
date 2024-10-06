@@ -26,6 +26,7 @@ export default async function handler(
     }
 
     try {
+      // await initializeRAG()
       const { screenshot, seoAnalysis } = await analyzeWebsite(url);
 
       res.status(200).json({

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import {
@@ -104,16 +104,35 @@ const SEOAnalyzer: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const screenshotRef = useRef<HTMLDivElement>(null);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   const initDB = async () => {
-    try {
-      await Promise.all([
-        axios.post<{}>("/api/init", {})
-      ]);
-    } catch (error) {
-      console.error("Error analyzing website:", error);
+    if (!isInitialized) {
+      try {
+        setIsInitialized(true);
+        await Promise.all([
+          axios.post<{}>("/api/init", {})
+        ]);
+      } catch (error) {
+        console.error("Error initializing database:", error);
+      }
     }
-  }
+  };
+
+  useEffect(() => {
+    initDB();
+  }, []);
+
+
+  // const initDB = async () => {
+  //   try {
+  //     await Promise.all([
+  //       axios.post<{}>("/api/init", {})
+  //     ]);
+  //   } catch (error) {
+  //     console.error("Error analyzing website:", error);
+  //   }
+  // }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -143,7 +162,9 @@ const SEOAnalyzer: React.FC = () => {
         <img src="/bobr.png" alt="Bobr" className="w-80 h-80" />
       </div>
 
-      <form onSubmit={handleSubmit} onLoad={initDB} className="mb-8 max-w-xl mx-auto">
+      <form onSubmit={handleSubmit} 
+      // onLoad={initDB} 
+      className="mb-8 max-w-xl mx-auto">
         <input
           type="url"
           value={url}

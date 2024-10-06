@@ -11,6 +11,8 @@ app.use(express.json());
 let chatComponents;
 
 async function promptRAG(query) {
+    
+    chatComponents = await setupChatComponents();
     const { vectorStore, llm, promptTemplate, outputParser } = chatComponents;
 
     try {
@@ -41,7 +43,7 @@ async function promptRAG(query) {
 
 async function initializeRAG(){
     const initialized = await initializeLLM();
-    chatComponents = await setupChatComponents();
+    // chatComponents = await setupChatComponents();
 
     if (initialized) {
         console.log(`LLM iniitialized successfully`);
