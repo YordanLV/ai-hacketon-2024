@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import puppeteer from "puppeteer";
-import OpenAI from "openai";
+// import OpenAI from "openai";
+const { promptRAG, initializeRAG } = require("./../rag/index.ts")
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// const openai = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
 
 export const config = {
   api: {
@@ -143,13 +144,13 @@ Meta Description: ${summarizedContent.metaDescription}
 
 Headings:
 ${["h1", "h2", "h3", "h4", "h5", "h6"]
-  .map(
-    (h) =>
-      `${h.toUpperCase()}: ${(
-        summarizedContent[h as keyof SEORelevantContent] as string[]
-      ).join(" | ")}`
-  )
-  .join("\n")}
+      .map(
+        (h) =>
+          `${h.toUpperCase()}: ${(
+            summarizedContent[h as keyof SEORelevantContent] as string[]
+          ).join(" | ")}`
+      )
+      .join("\n")}
 
 Paragraphs:
 ${summarizedContent.paragraphs.join("\n\n")}
@@ -175,14 +176,20 @@ Provide a comprehensive SEO analysis and improvement plan based on this content.
 
 For each area, provide detailed, actionable recommendations and explain their potential impact on SEO. Consider both on-page and technical SEO factors in your analysis.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-    max_tokens: 2000,
-  });
+  // Connecting to RAG
+  
+  
+  const response = await promptRAG(prompt)
 
-  const seoAnalysis = response.choices[0].message?.content || "";
+  // openai.chat.completions.create({
+  //   model: "gpt-4",
+  //   messages: [{ role: "user", content: prompt }],
+  //   temperature: 0.7,
+  //   max_tokens: 2000,
+  // });
+
+  const seoAnalysis = response || "";
 
   return { screenshot, seoAnalysis };
 }
+

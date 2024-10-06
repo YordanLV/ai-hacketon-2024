@@ -94,7 +94,6 @@ const LighthouseScore: React.FC<LighthouseScoreProps> = ({
     </div>
   );
 };
-
 const SEOAnalyzer: React.FC = () => {
   const [url, setUrl] = useState<string>("");
   const [screenshot, setScreenshot] = useState<string>("");
@@ -106,6 +105,15 @@ const SEOAnalyzer: React.FC = () => {
 
   const screenshotRef = useRef<HTMLDivElement>(null);
 
+  const initDB = async () => {
+    try {
+      await Promise.all([
+        axios.post<{}>("/api/init", {})
+      ]);
+    } catch (error) {
+      console.error("Error analyzing website:", error);
+    }
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -134,7 +142,8 @@ const SEOAnalyzer: React.FC = () => {
       <div className="flex justify-center mb-8">
         <img src="/bobr.png" alt="Bobr" className="w-80 h-80" />
       </div>
-      <form onSubmit={handleSubmit} className="mb-8 max-w-xl mx-auto">
+
+      <form onSubmit={handleSubmit} onLoad={initDB} className="mb-8 max-w-xl mx-auto">
         <input
           type="url"
           value={url}
