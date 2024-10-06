@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import lighthouse from "lighthouse";
-import puppeteer from "puppeteer";
+import lighthouse, { Flags } from "lighthouse";
+import * as chromeLauncher from "chrome-launcher";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -51,8 +51,8 @@ export default async function handler(
     const { url } = req.body as { url: string };
 
     try {
-      const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      const chrome = await chromeLauncher.launch({
+        chromeFlags: ["--headless"],
       });
       const options = {
         logLevel: "info",
@@ -63,11 +63,11 @@ export default async function handler(
           "best-practices",
           "seo",
         ],
-        port: new URL((browser as any).wsEndpoint()).port,
-      } as any;
+        port: chrome.port,
+      } as Flags | undefined;
 
       const runnerResult = await lighthouse(url, options);
-      await browser.close();
+      chrome.kill();
 
       const report = JSON.parse(runnerResult?.report as string);
       const { categories, audits } = report;
