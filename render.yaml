@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: your-app-name
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+    buildFilter:
+      paths:
+        - package.json
+        - next.config.js
+    disk:
+      name: chrome
+      mountPath: /root/.cache/puppeteer
+    healthCheckPath: /
+    autoDeploy: false
