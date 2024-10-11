@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import lighthouse, { Flags } from "lighthouse";
 import * as chromeLauncher from "chrome-launcher";
 import OpenAI from "openai";
+import { Config } from "tailwindcss";
+import { config } from "next/dist/build/templates/pages";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -64,6 +66,7 @@ export default async function handler(
           "seo",
         ],
         port: chrome.port,
+        disableFullPageScreenshot: true,
       } as Flags | undefined;
 
       const runnerResult = await lighthouse(url, options);
@@ -130,11 +133,12 @@ async function generateFeedback(
   const filteredAudits = audits.filter(
     (audit) => audit.score !== 0 && audit.score !== null
   );
+  console.log(JSON.stringify(filteredAudits.slice(0, 4), null, 2))
 
   const prompt = `Analyze the following Lighthouse results for a website and provide detailed, actionable feedback on how to improve the most critical issues:
 
 Audits:
-${JSON.stringify(filteredAudits.slice(0, 5), null, 2)}
+${JSON.stringify(filteredAudits.slice(0, 4), null, 2)}
 
 For each of the top 3-5 most critical issues:
 

@@ -41,7 +41,7 @@ async function initializeLLM() {
         let docs = [];
 
         const filePaths = ['./src/pages/rag/data.txt']
-        //  , './src/pages/rag/book.txt', './src/pages/rag/Companies Listed Alphabetically Showing the Following Details.txt'];
+        // const filePaths = ['./src/pages/rag/data.txt', './src/pages/rag/book.txt', './src/pages/rag/Companies Listed Alphabetically Showing the Following Details.txt'];
 
         for (const filePath of filePaths) {
             const fileData = await fs.readFileSync(filePath, 'utf8');
